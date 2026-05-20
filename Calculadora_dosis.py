@@ -47,7 +47,7 @@ def calcular_dosis_UI(peso_kg: float) -> float:
     """
     if peso_kg <= 0:
         raise ValueError(f"El peso debe ser mayor que 0 kg (recibido: {peso_kg})")
-    return round(peso_kg * DOSIS_FACTOR_UI_POR_KG, 0)
+    return round(peso_kg * DOSIS_FACTOR_UI_POR_KG, 1)
 
 
 def parsear_peso(texto: str) -> float:
