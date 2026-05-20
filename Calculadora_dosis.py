@@ -1,5 +1,5 @@
 """
-Calculadora de dosis de vacuna antirrábica — SURA® 2026
+Calculadora de dosis antirrábica — SURA® 2026
 ==========================================================
 Estructura:
   1. Constantes (diseño y protocolo)
@@ -73,7 +73,7 @@ def parsear_peso(texto: str) -> float:
 # ===========================================================================
 
 st.set_page_config(
-    page_title="Calculadora vacuna antirrábica",
+    page_title="Calculadora dosis antirrábica",
     layout="centered",
 )
 
@@ -265,7 +265,7 @@ st.markdown('<div class="titulo">Calculadora dosis antirrábica</div>', unsafe_a
 
 # ── Selector de formulación ──────────────────────────────────────────────────
 st.markdown('<div class="formulacion-box">', unsafe_allow_html=True)
-st.markdown('<div class="formulacion-titulo">Formulación de la vacuna</div>', unsafe_allow_html=True)
+st.markdown('<div class="formulacion-titulo">Formulación de la dosis</div>', unsafe_allow_html=True)
 
 formulacion = st.radio(
     label="Formulación",
