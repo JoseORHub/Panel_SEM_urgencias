@@ -32,7 +32,7 @@ DOSIS_FACTOR_UI_POR_KG: float = 40   # UI por kg
 # 2. LÓGICA DE NEGOCIO
 # ===========================================================================
 
-def calcular_dosis_ml(peso_kg: float) -> float:
+def calcular_dosis_UI(peso_kg: float) -> float:
     """
     Calcula la dosis en UI según el peso del paciente.
 
@@ -47,7 +47,7 @@ def calcular_dosis_ml(peso_kg: float) -> float:
     """
     if peso_kg <= 0:
         raise ValueError(f"El peso debe ser mayor que 0 kg (recibido: {peso_kg})")
-    return round(peso_kg * DOSIS_FACTOR_UI_POR_KG, 0)
+    return round(peso_kg * DOSIS_FACTOR_UI_POR_KG, 4)
 
 
 def parsear_peso(texto: str) -> float:
