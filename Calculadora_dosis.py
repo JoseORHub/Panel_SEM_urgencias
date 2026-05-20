@@ -144,6 +144,14 @@ CSS = f"""
     accent-color: #0033A0 !important;
   }}
 
+  
+  :root {{
+    --accent: #0033A0;
+  }}
+
+  input[type="radio"] {{
+    accent-color: var(--accent) !important;
+  }}
 
   
   /* ── Input centrado ── */
