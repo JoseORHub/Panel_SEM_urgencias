@@ -93,7 +93,7 @@ CSS = f"""
   /* ── Ancho máximo (450 px) ── */
   .main .block-container {{
     max-width: 450px;
-    padding-top: 20px;
+    padding-top: 10px;
     padding-bottom: 10px;
   }}
 
