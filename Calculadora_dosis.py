@@ -251,7 +251,7 @@ if st.session_state.modo_resultado and st.session_state.dosis is not None:
         f'<div class="resultado-valor">{st.session_state.dosis:.2f}</div>',
         unsafe_allow_html=True,
     )
-    st.markdown('<div class="resultado-unidad">mL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="resultado-unidad">UI</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="footer">Uso clínico referencial SURA® 2026</div>', unsafe_allow_html=True)
 
