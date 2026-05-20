@@ -115,7 +115,7 @@ CSS = f"""
 
   /* ── Selector de formulación ── */
   .formulacion-box {{
-    background-color: #F0F5FF;
+    background-color: #CCCCCC;
     border: 1.5px solid {AZUL_SURA};
     border-radius: 8px;
     padding: 12px 20px 10px 20px;
