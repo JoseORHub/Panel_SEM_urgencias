@@ -87,6 +87,7 @@ CSS = f"""
   /* ── Fondo de la app ── */
   .stApp {{
     background-color: {BLANCO};
+    border-color: {AZUL_SURA};
   }}
 
   /* ── Ancho máximo (450 px) ── */
@@ -139,20 +140,6 @@ CSS = f"""
     padding: 0 !important;
   }}
   
-    
-  div[data-testid="stRadio"] > div label input[type="radio"] {{
-    accent-color: #0033A0 !important;
-  }}
-
-  
-  :root {{
-    --accent: #0033A0;
-  }}
-
-  input[type="radio"] {{
-    accent-color: var(--accent) !important;
-  }}
-
   
   /* ── Input centrado ── */
   input {{
