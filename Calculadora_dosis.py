@@ -131,6 +131,7 @@ CSS = f"""
   }}
   div[data-testid="stRadio"] > label {{
     display: none;
+    color: {AZUL_OSCURO};
   }}
   div[data-testid="stRadio"] > div {{
     justify-content: center !important;
@@ -138,6 +139,7 @@ CSS = f"""
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    color: {AZUL_OSCURO};
   }}
 
   /* ── Input centrado ── */
