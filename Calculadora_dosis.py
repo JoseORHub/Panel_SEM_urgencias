@@ -139,10 +139,14 @@ CSS = f"""
     padding: 0 !important;
   }}
   
-  div[data-testid="stRadio"] input:checked + div {{
-    background-color: #0033A0 !important;
-    border-color: #0033A0 !important;
+  
+  /* Cambiar color del radio seleccionado */
+  div[data-testid="stRadio"] input:checked ~ div svg {{
+    fill: #0033A0 !important;   /* azul oscuro */
+    stroke: #0033A0 !important;
   }}
+
+  
   /* ── Input centrado ── */
   input {{
     text-align: center !important;
