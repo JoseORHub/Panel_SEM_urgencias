@@ -132,12 +132,19 @@ CSS = f"""
   }}
 
   /* ── Radio buttons centrados ── */
+  div[data-testid="stRadio"] {{
+    border: none !important;
+    box-shadow: none !important;
+  }}
   div[data-testid="stRadio"] > label {{
     display: none;
   }}
   div[data-testid="stRadio"] > div {{
     justify-content: center !important;
     gap: 30px !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }}
 
   /* ── Input centrado ── */
