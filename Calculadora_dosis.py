@@ -127,6 +127,7 @@ CSS = f"""
   div[data-testid="stRadio"] {{
     border: none !important;
     box-shadow: none !important;
+    color: {AZUL_OSCURO};
   }}
   div[data-testid="stRadio"] > label {{
     display: none;
