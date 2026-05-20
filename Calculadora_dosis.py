@@ -24,20 +24,24 @@ GRIS_TEXTO       = "#4A4A4A"
 GRIS_SUAVE       = "#CCCCCC"
 BLANCO           = "#FFFFFF"
 
-# -- Protocolo clínico --
-DOSIS_FACTOR_UI_POR_KG: float = 40   # UI por kg
+# -- Protocolo clínico: UI por kg según formulación --
+FACTORES_UI_POR_KG: dict = {
+    "Heteróloga": 40,   # suero equino
+    "Homóloga":   20,   # inmunoglobulina humana
+}
 
 
 # ===========================================================================
 # 2. LÓGICA DE NEGOCIO
 # ===========================================================================
 
-def calcular_dosis_UI(peso_kg: float) -> float:
+def calcular_dosis_UI(peso_kg: float, factor: float) -> float:
     """
-    Calcula la dosis en UI según el peso del paciente.
+    Calcula la dosis en UI según el peso del paciente y el factor de la formulación.
 
     Args:
         peso_kg: Peso del paciente en kilogramos. Debe ser > 0.
+        factor:  UI por kg según formulación (20 homóloga / 40 heteróloga).
 
     Returns:
         Dosis redondeada a 0 decimales en UI.
@@ -47,17 +51,18 @@ def calcular_dosis_UI(peso_kg: float) -> float:
     """
     if peso_kg <= 0:
         raise ValueError(f"El peso debe ser mayor que 0 kg (recibido: {peso_kg})")
-    return round(peso_kg * DOSIS_FACTOR_UI_POR_KG, 1)
+    return round(peso_kg * factor, 0)
 
 
 def parsear_peso(texto: str) -> float:
     """
     Convierte el texto ingresado por el usuario a float.
+    Acepta punto y coma como separador decimal.
 
     Raises:
         ValueError: Si el texto no representa un número válido.
     """
-    texto = texto.strip().replace(",", ".")   # acepta coma o punto decimal
+    texto = texto.strip().replace(",", ".")
     if not texto:
         raise ValueError("El campo de peso está vacío.")
     return float(texto)
@@ -84,7 +89,7 @@ CSS = f"""
     background-color: {BLANCO};
   }}
 
-  /* ── Ancho máximo similar a la ventana original (450 px) ── */
+  /* ── Ancho máximo (450 px) ── */
   .main .block-container {{
     max-width: 450px;
     padding-top: 20px;
@@ -100,12 +105,39 @@ CSS = f"""
     margin: 20px 0 10px 0;
   }}
 
-  /* ── Etiqueta sobre el input ── */
+  /* ── Etiquetas ── */
   .label {{
     color: {GRIS_TEXTO};
     font-size: 11pt;
     text-align: center;
     margin: 10px 0 5px 0;
+  }}
+
+  /* ── Selector de formulación ── */
+  .formulacion-box {{
+    background-color: #F0F5FF;
+    border: 1.5px solid {AZUL_SURA};
+    border-radius: 8px;
+    padding: 12px 20px 10px 20px;
+    margin-bottom: 14px;
+  }}
+  .formulacion-titulo {{
+    color: {AZUL_OSCURO};
+    font-size: 10pt;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }}
+
+  /* ── Radio buttons centrados ── */
+  div[data-testid="stRadio"] > label {{
+    display: none;
+  }}
+  div[data-testid="stRadio"] > div {{
+    justify-content: center !important;
+    gap: 30px !important;
   }}
 
   /* ── Input centrado ── */
@@ -176,12 +208,21 @@ CSS = f"""
     text-align: center;
     margin-top: 15px;
   }}
+  .resultado-formulacion {{
+    color: {AZUL_SURA};
+    font-size: 9pt;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 2px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }}
   .resultado-valor {{
     color: #000000;
     font-size: 26pt;
     font-weight: 800;
     text-align: center;
-    margin: 0;
+    margin: 4px 0 0 0;
     line-height: 1.1;
   }}
   .resultado-unidad {{
@@ -212,6 +253,7 @@ st.markdown(CSS, unsafe_allow_html=True)
 st.session_state.setdefault("modo_resultado", False)
 st.session_state.setdefault("peso_txt", "")
 st.session_state.setdefault("dosis", None)
+st.session_state.setdefault("formulacion", "Heteróloga")
 
 
 # ===========================================================================
@@ -219,9 +261,23 @@ st.session_state.setdefault("dosis", None)
 # ===========================================================================
 
 st.markdown('<div class="titulo">Calculadora dosis antirrábica</div>', unsafe_allow_html=True)
+
+# ── Selector de formulación ──────────────────────────────────────────────────
+st.markdown('<div class="formulacion-box">', unsafe_allow_html=True)
+st.markdown('<div class="formulacion-titulo">Formulación de la vacuna</div>', unsafe_allow_html=True)
+
+formulacion = st.radio(
+    label="Formulación",
+    options=list(FACTORES_UI_POR_KG.keys()),
+    index=list(FACTORES_UI_POR_KG.keys()).index(st.session_state.formulacion),
+    horizontal=True,
+    disabled=st.session_state.modo_resultado,
+)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ── Campo de peso y botón calcular ──────────────────────────────────────────
 st.markdown('<div class="label">Peso del paciente (kg)</div>', unsafe_allow_html=True)
 
-# Formulario: permite enviar con la tecla Enter
 with st.form("form_calculo", clear_on_submit=False):
     peso_txt = st.text_input(
         label="Peso del paciente",
@@ -244,9 +300,13 @@ btn_reiniciar = st.button(
     use_container_width=True,
 )
 
-# Panel de resultado (visible solo en modo resultado)
+# ── Panel de resultado ───────────────────────────────────────────────────────
 if st.session_state.modo_resultado and st.session_state.dosis is not None:
     st.markdown('<div class="resultado-etiqueta">Dosis recomendada</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="resultado-formulacion">Formulación {st.session_state.formulacion}</div>',
+        unsafe_allow_html=True,
+    )
     st.markdown(
         f'<div class="resultado-valor">{st.session_state.dosis:.0f}</div>',
         unsafe_allow_html=True,
@@ -264,18 +324,20 @@ if btn_reiniciar:
     st.session_state.modo_resultado = False
     st.session_state.peso_txt = ""
     st.session_state.dosis = None
+    # La formulación se conserva para el siguiente cálculo
     st.rerun()
 
 if btn_calcular:
     try:
         peso = parsear_peso(peso_txt)
-        dosis = calcular_dosis_UI(peso)
+        factor = FACTORES_UI_POR_KG[formulacion]
+        dosis = calcular_dosis_UI(peso, factor)
         st.session_state.peso_txt = peso_txt
         st.session_state.dosis = dosis
+        st.session_state.formulacion = formulacion
         st.session_state.modo_resultado = True
         st.rerun()
     except ValueError as e:
-        # Distingue entre error de formato y error de dominio
         mensaje = (
             "Ingrese un número válido para el peso.\nUse punto (.) o coma (,) para decimales."
             if "could not convert" in str(e) or "vacío" in str(e)
