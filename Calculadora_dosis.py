@@ -87,7 +87,6 @@ CSS = f"""
   /* ── Fondo de la app ── */
   .stApp {{
     background-color: {BLANCO};
-    border-color: {AZUL_SURA};
   }}
 
   /* ── Ancho máximo (450 px) ── */
@@ -131,6 +130,7 @@ CSS = f"""
   }}
   div[data-testid="stRadio"] > label {{
     display: none;
+    border-color: {AZUL_SURA} !important;
   }}
   div[data-testid="stRadio"] > div {{
     justify-content: center !important;
