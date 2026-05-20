@@ -29,7 +29,7 @@ DOSIS_FACTOR_ML_POR_KG: float = 0.1   # mL por kg — actualizar aquí si cambia
 
 
 # ===========================================================================
-# 2. LÓGICA DE NEGOCIO  (sin dependencias de Streamlit → fácil de testear)
+# 2. LÓGICA DE NEGOCIO
 # ===========================================================================
 
 def calcular_dosis_ml(peso_kg: float) -> float:
@@ -94,7 +94,7 @@ CSS = f"""
   /* ── Título principal ── */
   .titulo {{
     color: {AZUL_OSCURO};
-    font-size: 14pt;
+    font-size: 18pt;
     font-weight: 700;
     text-align: center;
     margin: 20px 0 10px 0;
