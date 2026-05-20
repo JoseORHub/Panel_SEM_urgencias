@@ -138,17 +138,35 @@ CSS = f"""
     cursor: not-allowed !important;
   }}
 
-  /* ── Botón secundario: "Nuevo cálculo" (plano, sin borde) ── */
+  /* ── Botón secundario: "Nuevo cálculo" ── */
   .stButton > button[kind="secondary"] {{
     background-color: {BLANCO} !important;
     color: {AZUL_SURA} !important;
-    border: none !important;
+    border: 2px solid {AZUL_SURA} !important;
+    border-radius: 4px !important;
     font-size: 10pt !important;
+    font-weight: 600 !important;
     padding: 10px !important;
     width: 100% !important;
+    letter-spacing: 0.3px !important;
+    transition: background-color 0.2s ease, color 0.2s ease !important;
+    animation: pulso 1.8s ease-in-out infinite !important;
+  }}
+  .stButton > button[kind="secondary"]:hover {{
+    background-color: {AZUL_SURA} !important;
+    color: {BLANCO} !important;
   }}
   .stButton > button[kind="secondary"]:disabled {{
     color: {GRIS_SUAVE} !important;
+    border: 2px solid {GRIS_SUAVE} !important;
+    animation: none !important;
+  }}
+
+  /* Pulso sutil para llamar la atención cuando está activo */
+  @keyframes pulso {{
+    0%   {{ box-shadow: 0 0 0 0 rgba(45, 109, 246, 0.35); }}
+    60%  {{ box-shadow: 0 0 0 7px rgba(45, 109, 246, 0); }}
+    100% {{ box-shadow: 0 0 0 0 rgba(45, 109, 246, 0); }}
   }}
 
   /* ── Panel de resultado ── */
@@ -220,7 +238,7 @@ with st.form("form_calculo", clear_on_submit=False):
     )
 
 btn_reiniciar = st.button(
-    "Nuevo cálculo",
+    "↺  Nuevo cálculo",
     type="secondary",
     disabled=not st.session_state.modo_resultado,
     use_container_width=True,
