@@ -113,15 +113,7 @@ CSS = f"""
     margin: 10px 0 5px 0;
   }}
 
-  /* ── Selector de formulación ── */
-  .formulacion-box {{
-    background-color: #CCCCCC;
-    border: 1.5px solid {AZUL_SURA};
-    border-radius: 8px;
-    padding: 12px 20px 10px 20px;
-    margin-bottom: 14px;
-  }}
-  .formulacion-titulo {{
+   .formulacion-titulo {{
     color: {AZUL_OSCURO};
     font-size: 10pt;
     font-weight: 700;
