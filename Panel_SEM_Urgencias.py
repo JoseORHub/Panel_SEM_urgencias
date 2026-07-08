@@ -336,10 +336,10 @@ st.markdown(
     f'''
     <div class="capacidad-sura">
         <h4>Capacidad instalada: {CAPACIDAD_TOTAL}</h4>
-        <p>🔹 Sillas habilitadas: {SILLAS_HABILITADAS}</p>
-        <p>🔹 Camillas habilitadas: {CAMILLAS_HABILITADAS}</p>
-        <p>🔹 Camillas de reanimación: {REANIMACION_HABILITADAS}</p>
-        <p><i>Importante: debe coincidir con lo reportado en REPS.</i></p>
+        <p>Sillas habilitadas: {SILLAS_HABILITADAS}</p>
+        <p>Camillas habilitadas: {CAMILLAS_HABILITADAS}</p>
+        <p>Camillas de reanimación: {REANIMACION_HABILITADAS}</p>
+        <p><i>Importante: Debe coincidir con lo reportado en REPS.</i></p>
     </div>
     ''',
     unsafe_allow_html=True,
