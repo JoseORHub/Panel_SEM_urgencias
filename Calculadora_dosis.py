@@ -1,6 +1,6 @@
 """
-Panel SEM - Servicio de Urgencias
-=================================
+PANEL SEM URGENCIAS
+===================
 
 Indicadores calculados:
 
@@ -10,34 +10,34 @@ Indicadores calculados:
 4. Ocupación (%)
 5. Saturación (%)
 
-Fórmulas SEM
+Definiciones SEM
 
 Ocupación (%) =
-(Pacientes en sillas + camillas + reanimación)
-/
-Capacidad instalada
-x 100
+Pacientes ubicados /
+Capacidad instalada * 100
 
 Saturación (%) =
-Total pacientes en servicio
-/
-Capacidad instalada
-x 100
+Total pacientes servicio /
+Capacidad instalada * 100
 """
 
 import streamlit as st
 
 
 # =============================================================================
-# 1. CONSTANTES
+# CONFIGURACIÓN
 # =============================================================================
 
-AZUL_SURA = "#2D6DF6"
-AZUL_OSCURO = "#0033A0"
-BLANCO = "#FFFFFF"
-GRIS = "#666666"
+st.set_page_config(
+    page_title="Panel SEM Urgencias",
+    page_icon="🏥",
+    layout="wide"
+)
 
-# Capacidad instalada
+
+# =============================================================================
+# CONSTANTES
+# =============================================================================
 
 SILLAS_HABILITADAS = 20
 CAMILLAS_HABILITADAS = 20
@@ -51,7 +51,361 @@ CAPACIDAD_TOTAL = (
 
 
 # =============================================================================
-# 2. LOGICA DE NEGOCIO
+# ESTILOS SURA
+# =============================================================================
+
+st.markdown(
+    """
+<style>
+
+/* ==========================================================
+   PALETA SURA
+========================================================== */
+
+:root{
+    --sura-blue:#0033A0;
+    --sura-light:#2D6DF6;
+    --text:#4B5563;
+    --success:#16A34A;
+    --warning:#D97706;
+    --danger:#DC2626;
+}
+
+/* ==========================================================
+   LIMPIEZA STREAMLIT
+========================================================== */
+
+#MainMenu{
+    visibility:hidden;
+}
+
+footer{
+    visibility:hidden;
+}
+
+header{
+    visibility:hidden;
+}
+
+/* ==========================================================
+   FONDO
+========================================================== */
+
+.stApp{
+    background:#F4F7FB;
+}
+
+.main .block-container{
+    max-width:1200px;
+    padding-top:20px;
+}
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero{
+    background:linear-gradient(
+        135deg,
+        #0033A0 0%,
+        #2D6DF6 100%
+    );
+
+    border-radius:24px;
+
+    padding:35px;
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+    box-shadow:
+        0px 10px 35px rgba(0,51,160,.25);
+}
+
+.hero-title{
+    color:white;
+    font-size:40px;
+    font-weight:800;
+    line-height:1;
+}
+
+.hero-subtitle{
+    color:rgba(255,255,255,.92);
+    margin-top:10px;
+    font-size:15px;
+}
+
+/* ==========================================================
+   CAPACIDAD
+========================================================== */
+
+.capacity-card{
+
+    background:white;
+
+    border-radius:22px;
+
+    padding:25px;
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+    box-shadow:
+        0px 4px 20px rgba(0,0,0,.05);
+}
+
+.capacity-title{
+
+    color:#6B7280;
+
+    text-transform:uppercase;
+
+    letter-spacing:1px;
+
+    font-size:12px;
+
+    font-weight:700;
+}
+
+.capacity-value{
+
+    color:#0033A0;
+
+    font-size:62px;
+
+    font-weight:800;
+
+    line-height:1;
+}
+
+.capacity-detail{
+
+    margin-top:10px;
+
+    color:#6B7280;
+
+    font-size:14px;
+}
+
+/* ==========================================================
+   TITULOS
+========================================================== */
+
+.section-title{
+    color:#0033A0;
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+/* ==========================================================
+   INPUTS
+========================================================== */
+
+[data-testid="stNumberInput"]{
+
+    background:white;
+
+    border-radius:14px;
+
+    padding:8px;
+
+    box-shadow:
+        0px 2px 8px rgba(0,0,0,.04);
+}
+
+input{
+    text-align:center !important;
+    font-size:20px !important;
+    font-weight:600 !important;
+}
+
+/* ==========================================================
+   BOTON
+========================================================== */
+
+div[data-testid="stFormSubmitButton"] button{
+
+    background:#0033A0 !important;
+
+    color:white !important;
+
+    border:none !important;
+
+    border-radius:12px !important;
+
+    height:50px !important;
+
+    font-size:15px !important;
+
+    font-weight:700 !important;
+
+    width:100%;
+}
+
+div[data-testid="stFormSubmitButton"] button:hover{
+
+    background:#2D6DF6 !important;
+}
+
+/* ==========================================================
+   KPI
+========================================================== */
+
+.kpi{
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:24px;
+
+    text-align:center;
+
+    box-shadow:
+        0px 4px 18px rgba(0,0,0,.05);
+}
+
+.kpi-label{
+
+    color:#6B7280;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    letter-spacing:1px;
+}
+
+.kpi-value{
+
+    color:#0033A0;
+
+    font-size:46px;
+
+    font-weight:800;
+
+    margin-top:8px;
+}
+
+/* ==========================================================
+   RESULTADOS
+========================================================== */
+
+.result-card{
+
+    background:white;
+
+    border-left:6px solid #0033A0;
+
+    border-radius:20px;
+
+    padding:25px;
+
+    text-align:center;
+
+    box-shadow:
+        0px 6px 20px rgba(0,0,0,.05);
+}
+
+.result-label{
+
+    color:#6B7280;
+
+    text-transform:uppercase;
+
+    letter-spacing:1px;
+
+    font-size:12px;
+
+    font-weight:700;
+}
+
+.result-value{
+
+    color:#0033A0;
+
+    font-size:58px;
+
+    font-weight:900;
+
+    line-height:1;
+
+    margin-top:10px;
+}
+
+.badge-green{
+
+    background:#DCFCE7;
+
+    color:#15803D;
+
+    border-radius:30px;
+
+    padding:7px 18px;
+
+    font-size:12px;
+
+    font-weight:700;
+}
+
+.badge-yellow{
+
+    background:#FEF3C7;
+
+    color:#B45309;
+
+    border-radius:30px;
+
+    padding:7px 18px;
+
+    font-size:12px;
+
+    font-weight:700;
+}
+
+.badge-red{
+
+    background:#FEE2E2;
+
+    color:#B91C1C;
+
+    border-radius:30px;
+
+    padding:7px 18px;
+
+    font-size:12px;
+
+    font-weight:700;
+}
+
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+.footer{
+
+    text-align:center;
+
+    color:#94A3B8;
+
+    margin-top:35px;
+
+    font-size:12px;
+}
+
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+
+# =============================================================================
+# FUNCIONES
 # =============================================================================
 
 def calcular_indicadores(
@@ -75,190 +429,155 @@ def calcular_indicadores(
     )
 
     ocupacion = round(
-        (pacientes_ubicados / CAPACIDAD_TOTAL) * 100,
-        1,
+        (pacientes_ubicados / CAPACIDAD_TOTAL) * 100, 1
     )
 
     saturacion = round(
-        (total_pacientes / CAPACIDAD_TOTAL) * 100,
-        1,
+        (total_pacientes / CAPACIDAD_TOTAL) * 100, 1
     )
 
-    return {
-        "pacientes_ubicados": pacientes_ubicados,
-        "total_pacientes": total_pacientes,
-        "ocupacion": ocupacion,
-        "saturacion": saturacion,
-    }
+    return (
+        pacientes_ubicados,
+        total_pacientes,
+        ocupacion,
+        saturacion,
+    )
 
 
-def nivel_ocupacion(valor):
+def badge_ocupacion(valor):
 
     if valor <= 80:
-        return "NORMAL", "#1B8A3D"
+        return "NORMAL", "badge-green"
 
     if valor <= 100:
-        return "ALTA", "#E67E22"
+        return "ALTA", "badge-yellow"
 
-    return "CRÍTICA", "#C0392B"
+    return "CRÍTICA", "badge-red"
 
 
-def nivel_saturacion(valor):
+def badge_saturacion(valor):
 
     if valor <= 100:
-        return "NORMAL", "#1B8A3D"
+        return "NORMAL", "badge-green"
 
     if valor <= 120:
-        return "SOBREDEMANDA", "#E67E22"
+        return "SOBREDEMANDA", "badge-yellow"
 
-    return "SATURADO", "#C0392B"
+    return "SATURADO", "badge-red"
 
 
 # =============================================================================
-# 3. CONFIGURACION
+# ENCABEZADO
 # =============================================================================
 
-st.set_page_config(
-    page_title="Panel SEM Urgencias",
-    layout="centered",
+st.markdown(
+    """
+    <div class="hero">
+
+        <div class="hero-title">
+            Panel SEM Urgencias
+        </div>
+
+        <div class="hero-subtitle">
+            Ocupación · Saturación · Capacidad Instalada
+        </div>
+
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 st.markdown(
     f"""
-    <style>
+    <div class="capacity-card">
 
-    .stApp {{
-        background-color:{BLANCO};
-    }}
+        <div class="capacity-title">
+            Capacidad Instalada
+        </div>
 
-    .titulo {{
-        color:{AZUL_OSCURO};
-        text-align:center;
-        font-size:28px;
-        font-weight:bold;
-        margin-bottom:5px;
-    }}
+        <div class="capacity-value">
+            {CAPACIDAD_TOTAL}
+        </div>
 
-    .subtitulo {{
-        text-align:center;
-        color:{GRIS};
-        margin-bottom:20px;
-    }}
+        <div class="capacity-detail">
+            {SILLAS_HABILITADAS} Sillas ·
+            {CAMILLAS_HABILITADAS} Camillas ·
+            {REANIMACION_HABILITADAS} Reanimación
+        </div>
 
-    .card {{
-        border:1px solid #EAEAEA;
-        border-radius:10px;
-        padding:16px;
-        text-align:center;
-        margin-top:10px;
-        box-shadow:0 1px 3px rgba(0,0,0,.08);
-    }}
-
-    .etiqueta {{
-        color:{GRIS};
-        font-size:12px;
-        text-transform:uppercase;
-    }}
-
-    .valor {{
-        font-size:30px;
-        font-weight:bold;
-        color:{AZUL_OSCURO};
-    }}
-
-    .badge {{
-        padding:6px 14px;
-        border-radius:20px;
-        font-weight:bold;
-        display:inline-block;
-        margin-top:8px;
-    }}
-
-    </style>
+    </div>
     """,
     unsafe_allow_html=True,
 )
 
 
 # =============================================================================
-# 4. CABECERA
+# FORMULARIO
 # =============================================================================
 
 st.markdown(
-    '<div class="titulo">Panel SEM de Urgencias</div>',
+    '<div class="section-title">Registro de pacientes</div>',
     unsafe_allow_html=True,
 )
-
-st.markdown(
-    '<div class="subtitulo">Indicadores de ocupación y saturación</div>',
-    unsafe_allow_html=True,
-)
-
-
-st.info(
-    f"""
-Capacidad instalada: {CAPACIDAD_TOTAL}
-
-• Sillas: {SILLAS_HABILITADAS}
-• Camillas: {CAMILLAS_HABILITADAS}
-• Reanimación: {REANIMACION_HABILITADAS}
-"""
-)
-
-
-# =============================================================================
-# 5. ENTRADAS
-# =============================================================================
 
 with st.form("formulario"):
 
-    st.subheader("Pacientes ubicados")
+    col1, col2, col3 = st.columns(3)
 
-    pacientes_sillas = st.number_input(
-        "Pacientes en sillas",
-        min_value=0,
-        value=0,
-    )
+    with col1:
+        pacientes_sillas = st.number_input(
+            "Pacientes en sillas",
+            min_value=0,
+            value=0,
+        )
 
-    pacientes_camillas = st.number_input(
-        "Pacientes en camillas",
-        min_value=0,
-        value=0,
-    )
+    with col2:
+        pacientes_camillas = st.number_input(
+            "Pacientes en camillas",
+            min_value=0,
+            value=0,
+        )
 
-    pacientes_reanimacion = st.number_input(
-        "Pacientes en reanimación",
-        min_value=0,
-        value=0,
-    )
+    with col3:
+        pacientes_reanimacion = st.number_input(
+            "Pacientes en reanimación",
+            min_value=0,
+            value=0,
+        )
 
-    st.subheader("Pacientes pendientes")
+    col4, col5 = st.columns(2)
 
-    pendientes_triage = st.number_input(
-        "Pendientes de triage",
-        min_value=0,
-        value=0,
-    )
+    with col4:
+        pendientes_triage = st.number_input(
+            "Pendientes de triage",
+            min_value=0,
+            value=0,
+        )
 
-    pendientes_atencion = st.number_input(
-        "Pendientes de atención médica",
-        min_value=0,
-        value=0,
-    )
+    with col5:
+        pendientes_atencion = st.number_input(
+            "Pendientes de atención médica",
+            min_value=0,
+            value=0,
+        )
 
     calcular = st.form_submit_button(
-        "Calcular indicadores",
-        use_container_width=True,
+        "Calcular Indicadores"
     )
 
 
 # =============================================================================
-# 6. RESULTADOS
+# RESULTADOS
 # =============================================================================
 
 if calcular:
 
-    indicadores = calcular_indicadores(
+    (
+        pacientes_ubicados,
+        total_pacientes,
+        ocupacion,
+        saturacion,
+    ) = calcular_indicadores(
         pacientes_sillas,
         pacientes_camillas,
         pacientes_reanimacion,
@@ -266,23 +585,23 @@ if calcular:
         pendientes_atencion,
     )
 
-    nivel_ocu, color_ocu = nivel_ocupacion(
-        indicadores["ocupacion"]
-    )
+    texto_ocu, clase_ocu = badge_ocupacion(ocupacion)
+    texto_sat, clase_sat = badge_saturacion(saturacion)
 
-    nivel_sat, color_sat = nivel_saturacion(
-        indicadores["saturacion"]
-    )
+    st.markdown("<br>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.markdown(
             f"""
-            <div class="card">
-                <div class="etiqueta">Pacientes ubicados</div>
-                <div class="valor">
-                    {indicadores["pacientes_ubicados"]}
+            <div class="kpi">
+                <div class="kpi-label">
+                    Pacientes Ubicados
+                </div>
+
+                <div class="kpi-value">
+                    {pacientes_ubicados}
                 </div>
             </div>
             """,
@@ -292,17 +611,20 @@ if calcular:
     with col2:
         st.markdown(
             f"""
-            <div class="card">
-                <div class="etiqueta">Total pacientes servicio</div>
-                <div class="valor">
-                    {indicadores["total_pacientes"]}
+            <div class="kpi">
+                <div class="kpi-label">
+                    Total Pacientes Servicio
+                </div>
+
+                <div class="kpi-value">
+                    {total_pacientes}
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
 
     col3, col4 = st.columns(2)
 
@@ -310,19 +632,20 @@ if calcular:
 
         st.markdown(
             f"""
-            <div class="card">
-                <div class="etiqueta">Ocupación</div>
-                <div class="valor">
-                    {indicadores["ocupacion"]}%
+            <div class="result-card">
+
+                <div class="result-label">
+                    Ocupación
                 </div>
-                <span
-                    class="badge"
-                    style="
-                    background:{color_ocu}22;
-                    color:{color_ocu};
-                    ">
-                    {nivel_ocu}
+
+                <div class="result-value">
+                    {ocupacion}%
+                </div>
+
+                <span class="{clase_ocu}">
+                    {texto_ocu}
                 </span>
+
             </div>
             """,
             unsafe_allow_html=True,
@@ -332,34 +655,44 @@ if calcular:
 
         st.markdown(
             f"""
-            <div class="card">
-                <div class="etiqueta">Saturación</div>
-                <div class="valor">
-                    {indicadores["saturacion"]}%
+            <div class="result-card">
+
+                <div class="result-label">
+                    Saturación
                 </div>
-                <span
-                    class="badge"
-                    style="
-                    background:{color_sat}22;
-                    color:{color_sat};
-                    ">
-                    {nivel_sat}
+
+                <div class="result-value">
+                    {saturacion}%
+                </div>
+
+                <span class="{clase_sat}">
+                    {texto_sat}
                 </span>
+
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
 
     st.success(
         f"""
-Pacientes ubicados: {indicadores['pacientes_ubicados']}
+✅ Pacientes ubicados: {pacientes_ubicados}
 
-Total pacientes servicio: {indicadores['total_pacientes']}
+✅ Total pacientes servicio: {total_pacientes}
 
-Ocupación: {indicadores['ocupacion']}%
+✅ Ocupación: {ocupacion}%
 
-Saturación: {indicadores['saturacion']}%
+✅ Saturación: {saturacion}%
 """
     )
+
+st.markdown(
+    """
+    <div class="footer">
+        Salud SURA · Panel SEM de Urgencias
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
