@@ -1,12 +1,17 @@
 """
-Calculadora de dosis antirrábica — SURA® 2026
+Calculadora de Ocupación — Servicio de Urgencias (Plataforma SEM)
 ==========================================================
 Estructura:
   1. Constantes (diseño y protocolo)
   2. Lógica de negocio (pura, sin dependencias de UI)
   3. Configuración de página y estilos
-  4. Construcción de la UI
-  5. Manejo de eventos
+  4. Estado de sesión
+  5. Construcción de la UI
+  6. Manejo de eventos
+
+Fórmula (Paso B - Ocupación, ABC del reporte en Plataforma SEM):
+  Ocupación (%) = (Total pacientes en camas y sillas / Total camas y sillas
+                    habilitadas disponibles) x 100
 """
 
 import streamlit as st
@@ -24,48 +29,69 @@ GRIS_TEXTO       = "#4A4A4A"
 GRIS_SUAVE       = "#CCCCCC"
 BLANCO           = "#FFFFFF"
 
-# -- Protocolo clínico: UI por kg según formulación --
-FACTORES_UI_POR_KG: dict = {
-    "Heteróloga": 40,   # suero equino
-    "Homóloga":   20,   # inmunoglobulina humana
-}
+# -- Capacidad instalada (constantes del servicio, Paso A - Capacidad) --
+SILLAS_HABILITADAS   = 20
+CAMILLAS_HABILITADAS = 20
+CAPACIDAD_TOTAL       = SILLAS_HABILITADAS + CAMILLAS_HABILITADAS
 
 
 # ===========================================================================
 # 2. LÓGICA DE NEGOCIO
 # ===========================================================================
 
-def calcular_dosis_UI(peso_kg: float, factor: float) -> float:
+def calcular_ocupacion(sillas_ocupadas: int, camillas_ocupadas: int, capacidad_total: int) -> float:
     """
-    Calcula la dosis en UI según el peso del paciente y el factor de la formulación.
+    Calcula el porcentaje de ocupación del servicio de urgencias.
+
+    Ocupación (%) = (pacientes en sillas + pacientes en camillas) / capacidad total * 100
 
     Args:
-        peso_kg: Peso del paciente en kilogramos. Debe ser > 0.
-        factor:  UI por kg según formulación (20 homóloga / 40 heteróloga).
+        sillas_ocupadas:   Número de sillas ocupadas por pacientes. Debe ser >= 0.
+        camillas_ocupadas: Número de camillas ocupadas por pacientes. Debe ser >= 0.
+        capacidad_total:   Total de sillas + camillas habilitadas (capacidad instalada).
 
     Returns:
-        Dosis redondeada a 0 decimales en UI.
+        Porcentaje de ocupación, redondeado a 1 decimal.
 
     Raises:
-        ValueError: Si el peso no es un número positivo.
+        ValueError: Si algún valor es negativo o excede la capacidad habilitada de su tipo.
     """
-    if peso_kg <= 0:
-        raise ValueError(f"El peso debe ser mayor que 0 kg (recibido: {peso_kg})")
-    return round(peso_kg * factor, 0)
+    if sillas_ocupadas < 0 or camillas_ocupadas < 0:
+        raise ValueError("Las cantidades ocupadas no pueden ser negativas.")
+    if sillas_ocupadas > SILLAS_HABILITADAS:
+        raise ValueError(
+            f"Sillas ocupadas ({sillas_ocupadas}) no puede superar la capacidad instalada "
+            f"de sillas ({SILLAS_HABILITADAS})."
+        )
+    if camillas_ocupadas > CAMILLAS_HABILITADAS:
+        raise ValueError(
+            f"Camillas ocupadas ({camillas_ocupadas}) no puede superar la capacidad instalada "
+            f"de camillas ({CAMILLAS_HABILITADAS})."
+        )
+
+    total_pacientes = sillas_ocupadas + camillas_ocupadas
+    return round((total_pacientes / capacidad_total) * 100, 1)
 
 
-def parsear_peso(texto: str) -> float:
+def parsear_entero(texto: str, nombre_campo: str) -> int:
     """
-    Convierte el texto ingresado por el usuario a float.
-    Acepta punto y coma como separador decimal.
+    Convierte el texto ingresado por el usuario a entero no negativo.
+
+    Args:
+        texto:        Valor ingresado en el campo de texto.
+        nombre_campo: Nombre descriptivo del campo, usado en mensajes de error.
 
     Raises:
-        ValueError: Si el texto no representa un número válido.
+        ValueError: Si el texto está vacío o no representa un entero válido.
     """
-    texto = texto.strip().replace(",", ".")
+    texto = texto.strip()
     if not texto:
-        raise ValueError("El campo de peso está vacío.")
-    return float(texto)
+        raise ValueError(f"El campo '{nombre_campo}' está vacío.")
+    try:
+        valor = int(texto)
+    except ValueError:
+        raise ValueError(f"Ingrese un número entero válido para '{nombre_campo}'.")
+    return valor
 
 
 # ===========================================================================
@@ -73,7 +99,7 @@ def parsear_peso(texto: str) -> float:
 # ===========================================================================
 
 st.set_page_config(
-    page_title="Calculadora dosis antirrábica",
+    page_title="Calculadora de ocupación - Urgencias",
     layout="centered",
 )
 
@@ -113,7 +139,7 @@ CSS = f"""
     margin: 10px 0 5px 0;
   }}
 
-   .formulacion-titulo {{
+  .subtitulo {{
     color: {AZUL_OSCURO};
     font-size: 10pt;
     font-weight: 700;
@@ -123,24 +149,25 @@ CSS = f"""
     text-transform: uppercase;
   }}
 
-  /* ── Radio buttons centrados ── */
-  div[data-testid="stRadio"] {{
-    border: none !important;
-    box-shadow: none !important;
+  /* ── Panel de capacidad instalada (constantes) ── */
+  .capacidad-box {{
+    background-color: #F2F6FF;
+    border: 1px solid #DCE6FB;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 10px 0 14px 0;
+    text-align: center;
   }}
-  div[data-testid="stRadio"] > label {{
-    display: none;
-    border-color: {AZUL_SURA} !important;
+  .capacidad-item {{
+    color: {GRIS_TEXTO};
+    font-size: 10pt;
+    display: inline-block;
+    margin: 0 12px;
   }}
-  div[data-testid="stRadio"] > div {{
-    justify-content: center !important;
-    gap: 30px !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
+  .capacidad-item b {{
+    color: {AZUL_OSCURO};
   }}
-  
-  
+
   /* ── Input centrado ── */
   input {{
     text-align: center !important;
@@ -209,7 +236,7 @@ CSS = f"""
     text-align: center;
     margin-top: 15px;
   }}
-  .resultado-formulacion {{
+  .resultado-detalle {{
     color: {AZUL_SURA};
     font-size: 9pt;
     font-weight: 600;
@@ -233,6 +260,18 @@ CSS = f"""
     margin-top: 0;
   }}
 
+  /* ── Etiqueta de nivel de ocupación ── */
+  .nivel-badge {{
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }}
+
   /* ── Pie de página ── */
   .footer {{
     color: {GRIS_TEXTO};
@@ -252,41 +291,50 @@ st.markdown(CSS, unsafe_allow_html=True)
 # ===========================================================================
 
 st.session_state.setdefault("modo_resultado", False)
-st.session_state.setdefault("peso_txt", "")
-st.session_state.setdefault("dosis", None)
-st.session_state.setdefault("formulacion", "Heteróloga")
+st.session_state.setdefault("sillas_txt", "")
+st.session_state.setdefault("camillas_txt", "")
+st.session_state.setdefault("ocupacion", None)
+st.session_state.setdefault("sillas_ocupadas", None)
+st.session_state.setdefault("camillas_ocupadas", None)
 
 
 # ===========================================================================
 # 5. CONSTRUCCIÓN DE LA UI
 # ===========================================================================
 
-st.markdown('<div class="titulo">Calculadora dosis antirrábica</div>', unsafe_allow_html=True)
+st.markdown('<div class="titulo">Calculadora de Ocupación<br>Servicio de Urgencias</div>', unsafe_allow_html=True)
 
-# ── Selector de formulación ──────────────────────────────────────────────────
-st.markdown('<div class="formulacion-box">', unsafe_allow_html=True)
-st.markdown('<div class="formulacion-titulo">Formulación de la dosis</div>', unsafe_allow_html=True)
-
-formulacion = st.radio(
-    label="Formulación",
-    options=list(FACTORES_UI_POR_KG.keys()),
-    index=list(FACTORES_UI_POR_KG.keys()).index(st.session_state.formulacion),
-    horizontal=True,
-    disabled=st.session_state.modo_resultado,
+# ── Panel de capacidad instalada (constantes, Paso A) ───────────────────────
+st.markdown(
+    f'''
+    <div class="capacidad-box">
+        <span class="capacidad-item">Sillas habilitadas: <b>{SILLAS_HABILITADAS}</b></span>
+        <span class="capacidad-item">Camillas habilitadas: <b>{CAMILLAS_HABILITADAS}</b></span>
+    </div>
+    ''',
+    unsafe_allow_html=True,
 )
-st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Campo de peso y botón calcular ──────────────────────────────────────────
-st.markdown('<div class="label">Peso del paciente (kg)</div>', unsafe_allow_html=True)
-
-with st.form("form_calculo", clear_on_submit=False):
-    peso_txt = st.text_input(
-        label="Peso del paciente",
-        value=st.session_state.peso_txt,
+# ── Campos de entrada y botón calcular ──────────────────────────────────────
+with st.form("form_ocupacion", clear_on_submit=False):
+    st.markdown('<div class="label">Sillas ocupadas</div>', unsafe_allow_html=True)
+    sillas_txt = st.text_input(
+        label="Sillas ocupadas",
+        value=st.session_state.sillas_txt,
         disabled=st.session_state.modo_resultado,
         label_visibility="collapsed",
-        placeholder="Ej: 70.5",
+        placeholder=f"Ej: 15 (máx. {SILLAS_HABILITADAS})",
     )
+
+    st.markdown('<div class="label">Camillas ocupadas</div>', unsafe_allow_html=True)
+    camillas_txt = st.text_input(
+        label="Camillas ocupadas",
+        value=st.session_state.camillas_txt,
+        disabled=st.session_state.modo_resultado,
+        label_visibility="collapsed",
+        placeholder=f"Ej: 18 (máx. {CAMILLAS_HABILITADAS})",
+    )
+
     btn_calcular = st.form_submit_button(
         "Calcular",
         type="primary",
@@ -302,19 +350,37 @@ btn_reiniciar = st.button(
 )
 
 # ── Panel de resultado ───────────────────────────────────────────────────────
-if st.session_state.modo_resultado and st.session_state.dosis is not None:
-    st.markdown('<div class="resultado-etiqueta">Dosis recomendada</div>', unsafe_allow_html=True)
-    st.markdown(
-        f'<div class="resultado-formulacion">Formulación {st.session_state.formulacion}</div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f'<div class="resultado-valor">{st.session_state.dosis:.0f}</div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown('<div class="resultado-unidad">UI</div>', unsafe_allow_html=True)
+if st.session_state.modo_resultado and st.session_state.ocupacion is not None:
+    ocupacion = st.session_state.ocupacion
+    total_pacientes = st.session_state.sillas_ocupadas + st.session_state.camillas_ocupadas
 
-st.markdown('<div class="footer">Uso clínico referencial SURA® 2026</div>', unsafe_allow_html=True)
+    # Nivel de saturación visual, alineado con el criterio de "Saturación" del PDF
+    if ocupacion < 80:
+        color_nivel, texto_nivel = "#1B8A3D", "Normal"
+    elif ocupacion < 100:
+        color_nivel, texto_nivel = "#C77700", "Alta"
+    else:
+        color_nivel, texto_nivel = "#C0272D", "Saturado"
+
+    st.markdown('<div class="resultado-etiqueta">Ocupación del servicio</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="resultado-detalle">{total_pacientes} pacientes / {CAPACIDAD_TOTAL} capacidad instalada</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(f'<div class="resultado-valor">{ocupacion:.1f}</div>', unsafe_allow_html=True)
+    st.markdown('<div class="resultado-unidad">%</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'''
+        <div style="text-align:center;">
+            <span class="nivel-badge" style="background-color:{color_nivel}22; color:{color_nivel};">
+                {texto_nivel}
+            </span>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+st.markdown('<div class="footer">Uso institucional referencial · ABC del reporte en Plataforma SEM</div>', unsafe_allow_html=True)
 
 
 # ===========================================================================
@@ -323,25 +389,25 @@ st.markdown('<div class="footer">Uso clínico referencial SURA® 2026</div>', un
 
 if btn_reiniciar:
     st.session_state.modo_resultado = False
-    st.session_state.peso_txt = ""
-    st.session_state.dosis = None
-    # La formulación se conserva para el siguiente cálculo
+    st.session_state.sillas_txt = ""
+    st.session_state.camillas_txt = ""
+    st.session_state.ocupacion = None
+    st.session_state.sillas_ocupadas = None
+    st.session_state.camillas_ocupadas = None
     st.rerun()
 
 if btn_calcular:
     try:
-        peso = parsear_peso(peso_txt)
-        factor = FACTORES_UI_POR_KG[formulacion]
-        dosis = calcular_dosis_UI(peso, factor)
-        st.session_state.peso_txt = peso_txt
-        st.session_state.dosis = dosis
-        st.session_state.formulacion = formulacion
+        sillas_ocupadas = parsear_entero(sillas_txt, "Sillas ocupadas")
+        camillas_ocupadas = parsear_entero(camillas_txt, "Camillas ocupadas")
+        ocupacion = calcular_ocupacion(sillas_ocupadas, camillas_ocupadas, CAPACIDAD_TOTAL)
+
+        st.session_state.sillas_txt = sillas_txt
+        st.session_state.camillas_txt = camillas_txt
+        st.session_state.sillas_ocupadas = sillas_ocupadas
+        st.session_state.camillas_ocupadas = camillas_ocupadas
+        st.session_state.ocupacion = ocupacion
         st.session_state.modo_resultado = True
         st.rerun()
     except ValueError as e:
-        mensaje = (
-            "Ingrese un número válido para el peso.\nUse punto (.) o coma (,) para decimales."
-            if "could not convert" in str(e) or "vacío" in str(e)
-            else str(e)
-        )
-        st.error(mensaje)
+        st.error(str(e))
