@@ -191,6 +191,27 @@ def clasificar_saturacion(saturacion: float) -> tuple[str, str]:
     return "Saturado", ROJO_CRIT
 
 
+def render_alerta(icono: str, texto: str, color: str) -> None:
+    """
+    Renderiza una alerta con estilo SURA (fondo tenue + borde izquierdo del
+    color de estado), reemplazando los st.success/warning/error nativos de
+    Streamlit, que solo permiten verde/amarillo/rojo por defecto.
+
+    Args:
+        icono: Emoji o símbolo a mostrar a la izquierda del texto.
+        texto: Mensaje a mostrar.
+        color: Color hexadecimal del estado (VERDE_OK, NARANJA_ALT o ROJO_CRIT).
+    """
+    st.markdown(
+        f'''
+        <div class="alerta-sura" style="background-color:{color}14; border-left: 4px solid {color};">
+            <span style="color:{color};">{icono} {texto}</span>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+
 # ===========================================================================
 # 3. CONFIGURACIÓN DE PÁGINA Y ESTILOS
 # ===========================================================================
@@ -259,6 +280,32 @@ CSS = f"""
   div[data-testid="stMetricValue"] {{
     color: {AZUL_OSCURO} !important;
   }}
+
+  /* ── Alertas de estado (Ocupación / Saturación) con paleta SURA ── */
+  .alerta-sura {{
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 10.5pt;
+    font-weight: 600;
+  }}
+
+  /* ── Panel de capacidad instalada (Paso A) con paleta SURA ── */
+  .capacidad-sura {{
+    background-color: {AZUL_SURA}0D;
+    border-left: 4px solid {AZUL_SURA};
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+  }}
+  .capacidad-sura h4 {{
+    color: {AZUL_OSCURO};
+    margin: 0 0 8px 0;
+  }}
+  .capacidad-sura p {{
+    color: {GRIS_TEXTO};
+    margin: 2px 0;
+  }}
 </style>
 """
 
@@ -285,18 +332,17 @@ st.markdown(
 )
 
 # -- Capacidad instalada (Paso A, valores constantes y auditable) --
-st.info(
-    f"""
-### Capacidad instalada: {CAPACIDAD_TOTAL}
-
-🔹 Sillas habilitadas: {SILLAS_HABILITADAS}
-
-🔹 Camillas habilitadas: {CAMILLAS_HABILITADAS}
-
-🔹 Camillas de reanimación: {REANIMACION_HABILITADAS}
-
-*Importante: debe coincidir con lo reportado en REPS.*
-"""
+st.markdown(
+    f'''
+    <div class="capacidad-sura">
+        <h4>Capacidad instalada: {CAPACIDAD_TOTAL}</h4>
+        <p>🔹 Sillas habilitadas: {SILLAS_HABILITADAS}</p>
+        <p>🔹 Camillas habilitadas: {CAMILLAS_HABILITADAS}</p>
+        <p>🔹 Camillas de reanimación: {REANIMACION_HABILITADAS}</p>
+        <p><i>Importante: debe coincidir con lo reportado en REPS.</i></p>
+    </div>
+    ''',
+    unsafe_allow_html=True,
 )
 
 # -- Formulario de registro operativo --
@@ -335,7 +381,7 @@ with st.form("formulario_registro_operativo"):
 
 # -- Panel de resultados --
 if st.session_state.error_validacion:
-    st.error(st.session_state.error_validacion)
+    render_alerta("🚫", st.session_state.error_validacion, ROJO_CRIT)
 
 if st.session_state.indicadores is not None:
     indicadores: IndicadoresSEM = st.session_state.indicadores
@@ -351,24 +397,32 @@ if st.session_state.indicadores is not None:
 
     st.divider()
 
-    nivel_ocupacion, _ = clasificar_ocupacion(indicadores.ocupacion)
-    nivel_saturacion, _ = clasificar_saturacion(indicadores.saturacion)
+    nivel_ocupacion, color_ocupacion = clasificar_ocupacion(indicadores.ocupacion)
+    nivel_saturacion, color_saturacion = clasificar_saturacion(indicadores.saturacion)
 
-    mensajes_ocupacion = {
-        "Normal":  ("success", f"✅ Ocupación normal ({indicadores.ocupacion}%)"),
-        "Alta":    ("warning", f"⚠️ Ocupación alta ({indicadores.ocupacion}%)"),
-        "Crítica": ("error",   f"🚨 Ocupación crítica ({indicadores.ocupacion}%)"),
+    ICONOS_OCUPACION = {"Normal": "✅", "Alta": "⚠️", "Crítica": "🚨"}
+    TEXTOS_OCUPACION = {
+        "Normal":  f"Ocupación normal ({indicadores.ocupacion}%)",
+        "Alta":    f"Ocupación alta ({indicadores.ocupacion}%)",
+        "Crítica": f"Ocupación crítica ({indicadores.ocupacion}%)",
     }
-    tipo, texto = mensajes_ocupacion[nivel_ocupacion]
-    getattr(st, tipo)(texto)
+    render_alerta(
+        ICONOS_OCUPACION[nivel_ocupacion],
+        TEXTOS_OCUPACION[nivel_ocupacion],
+        color_ocupacion,
+    )
 
-    mensajes_saturacion = {
-        "Normal":       ("success", f"✅ Saturación normal ({indicadores.saturacion}%)"),
-        "Sobredemanda": ("warning", f"⚠️ Sobredemanda ({indicadores.saturacion}%)"),
-        "Saturado":     ("error",   f"🚨 Servicio saturado ({indicadores.saturacion}%)"),
+    ICONOS_SATURACION = {"Normal": "✅", "Sobredemanda": "⚠️", "Saturado": "🚨"}
+    TEXTOS_SATURACION = {
+        "Normal":       f"Saturación normal ({indicadores.saturacion}%)",
+        "Sobredemanda": f"Sobredemanda ({indicadores.saturacion}%)",
+        "Saturado":     f"Servicio saturado ({indicadores.saturacion}%)",
     }
-    tipo, texto = mensajes_saturacion[nivel_saturacion]
-    getattr(st, tipo)(texto)
+    render_alerta(
+        ICONOS_SATURACION[nivel_saturacion],
+        TEXTOS_SATURACION[nivel_saturacion],
+        color_saturacion,
+    )
 
 st.divider()
 st.caption("Salud SURA • Indicadores SEM de Urgencias")
