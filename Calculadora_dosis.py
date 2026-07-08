@@ -447,3 +447,20 @@ if btn_calcular:
         st.session_state.indicadores = None
         st.session_state.error_validacion = str(e)
     st.rerun()
+
+
+# ===========================
+# BOTÓN NUEVO CÁLCULO
+# ===========================
+
+btn_nuevo = st.button(
+    "↺ Nuevo cálculo",
+    use_container_width=True,
+    disabled=st.session_state.indicadores is None,
+)
+
+if btn_nuevo:
+    st.session_state.indicadores = None
+    st.session_state.error_validacion = None
+    st.rerun()
+
