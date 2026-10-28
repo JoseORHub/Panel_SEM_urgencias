@@ -41,7 +41,7 @@ ROJO_CRIT   = "#C0272D"
 
 # -- Capacidad instalada del servicio (Paso A - Capacidad) --
 # Importante: debe coincidir con lo reportado en REPS.
-SILLAS_HABILITADAS      = 16
+SILLAS_HABILITADAS      = 26
 CAMILLAS_HABILITADAS    = 24
 REANIMACION_HABILITADAS = 1
 
